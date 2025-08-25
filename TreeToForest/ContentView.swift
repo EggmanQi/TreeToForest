@@ -11,6 +11,7 @@ struct ContentView: View {
     @StateObject private var dataManager = DataManager.shared
     @State private var isWaterAnimationPlaying = false
     @State private var showEnvironmentalMessage = false
+    @State private var isButtonVisible = true
     
     var body: some View {
         NavigationView {
@@ -23,7 +24,7 @@ struct ContentView: View {
                 BackgroundGradientView()
                 
                 // 图片背景层 (z=1)
-                BackgroundImageView()
+                BackgroundImageView(waterTimes: dataManager.waterTimes)
                 
                 VStack {
                     // 文本说明层 (z=2)
@@ -35,14 +36,14 @@ struct ContentView: View {
                 VStack {
                     Spacer()
                     WaterButtonView(onWater: {
-                        // 触发浇水动画
-                        isWaterAnimationPlaying = true
-                        // 延迟执行实际的浇水逻辑，等待动画完成
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            dataManager.incrementWaterTimes()
+                        // 隐藏按钮并触发浇水动画
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isButtonVisible = false
                         }
-                    }, canWater: dataManager.canWater)
+                        isWaterAnimationPlaying = true
+                    }, canWater: dataManager.canWater && isButtonVisible)
                 }
+                .offset(y: isButtonVisible ? 0 : 200) // 按钮向下移出屏幕
                 
                 // 浇水动画层 (z=3，最上层)
                 if isWaterAnimationPlaying {
@@ -51,6 +52,12 @@ struct ContentView: View {
                         onAnimationComplete: {
                             // 动画完成后的回调
                             print("Water animation completed")
+                            // 执行浇水逻辑
+                            dataManager.incrementWaterTimes()
+                            // 重新显示按钮
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                isButtonVisible = true
+                            }
                         }
                     )
                     .position(WaterAnimationConfig.getAnimationPosition())
@@ -73,12 +80,11 @@ struct ContentView: View {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 showEnvironmentalMessage = false
                             }
-                            // 触发浇水动画
-                            isWaterAnimationPlaying = true
-                            // 延迟执行实际的浇水逻辑，等待动画完成
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                dataManager.incrementWaterTimes()
+                            // 隐藏按钮并触发浇水动画
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                isButtonVisible = false
                             }
+                            isWaterAnimationPlaying = true
                         }
                     )
                     .transition(.opacity.combined(with: .scale))
