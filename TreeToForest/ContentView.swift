@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var dataManager = DataManager.shared
+    @State private var isWaterAnimationPlaying = false
     
     var body: some View {
         NavigationView {
@@ -33,8 +34,29 @@ struct ContentView: View {
                 VStack {
                     Spacer()
                     WaterButtonView(onWater: {
-                        dataManager.incrementWaterTimes()
+                        // 触发浇水动画
+                        isWaterAnimationPlaying = true
+                        // 延迟执行实际的浇水逻辑，等待动画完成
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            dataManager.incrementWaterTimes()
+                        }
                     }, canWater: dataManager.canWater)
+                }
+                
+                // 浇水动画层 (z=3，最上层)
+                if isWaterAnimationPlaying {
+                    WaterAnimationView(
+                        isPlaying: $isWaterAnimationPlaying,
+                        onAnimationComplete: {
+                            // 动画完成后的回调
+                            print("Water animation completed")
+                        }
+                    )
+                    .position(WaterAnimationConfig.getAnimationPosition())
+                    .onAppear {
+                        let position = WaterAnimationConfig.getAnimationPosition()
+                        print("Animation positioned at: (\(position.x), \(position.y))")
+                    }
                 }
             }
             .ignoresSafeArea()
