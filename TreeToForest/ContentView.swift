@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var dataManager = DataManager.shared
     @State private var isWaterAnimationPlaying = false
+    @State private var showEnvironmentalMessage = false
     
     var body: some View {
         NavigationView {
@@ -58,6 +59,30 @@ struct ContentView: View {
                         print("Animation positioned at: (\(position.x), \(position.y))")
                     }
                 }
+                
+                // 环境保护信息弹出层 (z=4，最上层)
+                if showEnvironmentalMessage {
+                    EnvironmentalMessageView(
+                        onDismiss: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showEnvironmentalMessage = false
+                            }
+                        },
+                        onWater: {
+                            // 关闭弹出视图
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showEnvironmentalMessage = false
+                            }
+                            // 触发浇水动画
+                            isWaterAnimationPlaying = true
+                            // 延迟执行实际的浇水逻辑，等待动画完成
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                dataManager.incrementWaterTimes()
+                            }
+                        }
+                    )
+                    .transition(.opacity.combined(with: .scale))
+                }
             }
             .ignoresSafeArea()
             .navigationTitle("TTF")
@@ -65,7 +90,10 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {
-                        // 问号按钮点击事件
+                        // 显示环境保护信息弹出视图
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showEnvironmentalMessage = true
+                        }
                     }) {
                         Image("icon_question")
                             .resizable()
