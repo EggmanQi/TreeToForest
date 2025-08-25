@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DescriptionView: View {
     let waterTimes: Int
+    let remainingWaterTimes: Int
     
     var body: some View {
         VStack(spacing: 20) {
@@ -26,11 +27,20 @@ struct DescriptionView: View {
                 .padding(.horizontal, 24)
             
             // 浇水次数文本
-            HStack {
-                Text("Today's watering times: \(waterTimes)")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.brown)
-                Spacer()
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Today's watering times: \(waterTimes)/5")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.brown)
+                    Spacer()
+                }
+                
+                HStack {
+                    Text("Remaining: \(remainingWaterTimes) times")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(.brown.opacity(0.8))
+                    Spacer()
+                }
             }
             .padding(.horizontal, 24)
         }
@@ -39,5 +49,5 @@ struct DescriptionView: View {
 }
 
 #Preview {
-    DescriptionView(waterTimes: 5)
+    DescriptionView(waterTimes: 3, remainingWaterTimes: 2)
 }

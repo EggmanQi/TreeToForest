@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var waterTimes: Int = 5
+    @StateObject private var dataManager = DataManager.shared
     
     var body: some View {
         NavigationView {
@@ -25,16 +25,16 @@ struct ContentView: View {
                 
                 VStack {
                     // 文本说明层 (z=2)
-                    DescriptionView(waterTimes: waterTimes)
+                    DescriptionView(waterTimes: dataManager.waterTimes, remainingWaterTimes: dataManager.remainingWaterTimes)
                         .padding(.top, 80)
                     Spacer()
                 }
                 
                 VStack {
                     Spacer()
-                    WaterButtonView {
-                        waterTimes += 1
-                    }
+                    WaterButtonView(onWater: {
+                        dataManager.incrementWaterTimes()
+                    }, canWater: dataManager.canWater)
                 }
             }
             .ignoresSafeArea()

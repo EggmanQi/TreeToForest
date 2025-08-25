@@ -9,30 +9,37 @@ import SwiftUI
 
 struct WaterButtonView: View {
     let onWater: () -> Void
+    let canWater: Bool
     
     var body: some View {
         Button(action: onWater) {
-            Text("Click to water")
+            Text(canWater ? "Click to water" : "Daily limit reached")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .frame(width: 212, height: 65)
                 .background(
                     RoundedRectangle(cornerRadius: 25)
                         .fill(
                             LinearGradient(
-                                colors: [Color.blue, Color.cyan],
+                                colors: canWater ? [Color(hex: "#51B0FF"), Color(hex: "#51B0FF")] : [Color.gray, Color.gray.opacity(0.7)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
+                        .shadow(
+                            color: canWater ? Color(hex: "#3E9BE7") : Color.clear,
+                            radius: 0,
+                            x: 0,
+                            y: 6
+                        )
                 )
         }
+        .disabled(!canWater)
         .padding(.horizontal, 24)
         .padding(.bottom, 40)
     }
 }
 
 #Preview {
-    WaterButtonView(onWater: {})
+    WaterButtonView(onWater: {}, canWater: true)
 }
