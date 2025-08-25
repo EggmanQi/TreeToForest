@@ -9,10 +9,17 @@ import SwiftUI
 
 struct WaterButtonView: View {
     let onWater: () -> Void
+    let onDailyLimitTap: () -> Void
     let canWater: Bool
     
     var body: some View {
-        Button(action: onWater) {
+        Button(action: {
+            if canWater {
+                onWater()
+            } else {
+                onDailyLimitTap()
+            }
+        }) {
             Text(canWater ? "Click to water" : "Daily limit reached")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
@@ -34,12 +41,11 @@ struct WaterButtonView: View {
                         )
                 )
         }
-        .disabled(!canWater)
         .padding(.horizontal, 24)
         .padding(.bottom, 40)
     }
 }
 
 #Preview {
-    WaterButtonView(onWater: {}, canWater: true)
+    WaterButtonView(onWater: {}, onDailyLimitTap: {}, canWater: true)
 }

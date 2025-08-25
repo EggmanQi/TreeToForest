@@ -57,11 +57,11 @@ class DataManager: ObservableObject {
         // 检查是否是新的一天
         checkAndResetDaily()
         
-        #if DEBUG
-        // 调试环境下忽略每日限制
-        waterTimes += 1
-        saveWaterTimes()
-        #else
+//        #if DEBUG
+//        // 调试环境下忽略每日限制
+//        waterTimes += 1
+//        saveWaterTimes()
+//        #else
         // 生产环境下检查每日限制
         if waterTimes >= maxWaterTimesPerDay {
             return // 已达到每日限制，不增加
@@ -69,7 +69,7 @@ class DataManager: ObservableObject {
         
         waterTimes += 1
         saveWaterTimes()
-        #endif
+//        #endif
         
         // 更新最后浇水日期
         userDefaults.set(getCurrentDateString(), forKey: lastWaterDateKey)
@@ -88,12 +88,12 @@ class DataManager: ObservableObject {
     
     // 检查是否还能浇水
     var canWater: Bool {
-        #if DEBUG
-        // 调试环境下始终允许浇水
-        return true
-        #else
+//        #if DEBUG
+//        // 调试环境下始终允许浇水
+//        return true
+//        #else
         // 生产环境下检查每日限制
         return waterTimes < maxWaterTimesPerDay
-        #endif
+//        #endif
     }
 }

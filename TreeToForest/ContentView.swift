@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var isWaterAnimationPlaying = false
     @State private var showEnvironmentalMessage = false
     @State private var isButtonVisible = true
+    @State private var showDailyLimitToast = false
     
     var body: some View {
         NavigationView {
@@ -35,13 +36,22 @@ struct ContentView: View {
                 
                 VStack {
                     Spacer()
-                    WaterButtonView(onWater: {
-                        // 隐藏按钮并触发浇水动画
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            isButtonVisible = false
-                        }
-                        isWaterAnimationPlaying = true
-                    }, canWater: dataManager.canWater && isButtonVisible)
+                    WaterButtonView(
+                        onWater: {
+                            // 隐藏按钮并触发浇水动画
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                isButtonVisible = false
+                            }
+                            isWaterAnimationPlaying = true
+                        },
+                        onDailyLimitTap: {
+                            // 显示每日限制提示
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showDailyLimitToast = true
+                            }
+                        },
+                        canWater: dataManager.canWater && isButtonVisible
+                    )
                 }
                 .offset(y: isButtonVisible ? 0 : 200) // 按钮向下移出屏幕
                 
@@ -89,6 +99,9 @@ struct ContentView: View {
                     )
                     .transition(.opacity.combined(with: .scale))
                 }
+                
+                // 每日限制提示层 (z=5，最上层)
+                DailyLimitToastView(isVisible: $showDailyLimitToast)
             }
             .ignoresSafeArea()
             .navigationTitle("TTF")
