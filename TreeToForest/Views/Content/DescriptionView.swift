@@ -12,19 +12,19 @@ struct DescriptionView: View {
     let remainingWaterTimes: Int
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack {
             // 主要说明文本
             Text("When you plant a tree, we will plant a tree for you in the desert and name it after you!")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 16)
                 .padding(.vertical, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
                         .fill(Color.white.opacity(0.3))
                 )
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 16)
             
             // 浇水次数文本
             VStack(spacing: 8) {
@@ -44,10 +44,10 @@ struct DescriptionView: View {
             }
             .padding(.horizontal, 24)
         }
-        .padding(.top, 40)
     }
 }
 
 #Preview {
     DescriptionView(waterTimes: 3, remainingWaterTimes: 2)
+        .background(.black)
 }

@@ -16,6 +16,7 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
+            // 主要内容区域
             ZStack {
                 // 确保完全覆盖的背景色
                 Color.white
@@ -23,16 +24,22 @@ struct ContentView: View {
                 
                 // 背景渐变层 (z=0)
                 BackgroundGradientView()
-                
+            
                 // 图片背景层 (z=1)
                 BackgroundImageView(waterTimes: dataManager.waterTimes)
-                
-                VStack {
-                    // 文本说明层 (z=2)
+            
+                VStack(spacing: 0) {
+                    // 自定义导航栏
+                    CustomNavigationBarView(onQuestionTap: {
+                        // 显示环境保护信息弹出视图
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showEnvironmentalMessage = true
+                        }
+                    })
                     DescriptionView(waterTimes: dataManager.waterTimes, remainingWaterTimes: dataManager.remainingWaterTimes)
-                        .padding(.top, 80)
                     Spacer()
                 }
+                .padding(.top, 40)
                 
                 VStack {
                     Spacer()
@@ -99,27 +106,11 @@ struct ContentView: View {
                     )
                     .transition(.opacity.combined(with: .scale))
                 }
-                
-                // 每日限制提示层 (z=5，最上层)
+                    
                 DailyLimitToastView(isVisible: $showDailyLimitToast)
             }
             .ignoresSafeArea()
-            .navigationTitle("TTF")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        // 显示环境保护信息弹出视图
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showEnvironmentalMessage = true
-                        }
-                    }) {
-                        Image("icon_question")
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                    }
-                }
-            }
+            .navigationBarHidden(true)
         }
     }
 }
