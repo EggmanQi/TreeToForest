@@ -26,7 +26,7 @@ struct ContentView: View {
                 BackgroundGradientView()
             
                 // 图片背景层 (z=1)
-                BackgroundImageView(waterTimes: dataManager.waterTimes)
+                BackgroundImageView(waterTimes: dataManager.waterTimes, completeTrees: dataManager.completeTrees)
             
                 VStack(spacing: 0) {
                     // 自定义导航栏

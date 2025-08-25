@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BackgroundImageView: View {
     let waterTimes: Int
+    let completeTrees: [CompleteTree]
     
     // 配置管理器
     @StateObject private var configManager = TreeConfigManager.shared
@@ -36,6 +37,15 @@ struct BackgroundImageView: View {
                         .frame(maxWidth: .infinity)
                 }
                 
+                // 显示完成的小树，使用持久化的位置信息
+                ForEach(completeTrees) { tree in
+                    Image("tree_lv_10")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: tree.size, height: tree.size)
+                        .position(getActualPosition(for: tree, in: geometry))
+                }
+                
                 Image("tree_lv_\(treeLevel)")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -50,8 +60,22 @@ struct BackgroundImageView: View {
             .ignoresSafeArea()
         }
     }
+    
+    // 根据相对位置计算实际位置
+    private func getActualPosition(for tree: CompleteTree, in geometry: GeometryProxy) -> CGPoint {
+        let screenWidth = geometry.size.width
+        let screenHeight = geometry.size.height
+        
+        let actualX = tree.relativeX * screenWidth
+        let actualY = tree.relativeY * screenHeight
+        
+        return CGPoint(x: actualX, y: actualY)
+    }
 }
 
 #Preview {
-    BackgroundImageView(waterTimes: 3)
+    BackgroundImageView(waterTimes: 3, completeTrees: [
+        CompleteTree(relativeX: 0.3, relativeY: 0.7, size: 30),
+        CompleteTree(relativeX: 0.7, relativeY: 0.8, size: 40)
+    ])
 }
