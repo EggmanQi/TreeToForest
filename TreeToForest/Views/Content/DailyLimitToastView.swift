@@ -15,27 +15,26 @@ struct DailyLimitToastView: View {
             // 提示框
             VStack(spacing: 0) {
                 Text("Watering times have been used up, come back tomorrow!")
-                    .font(.custom("PingFang SC", size: 18, relativeTo: .body))
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .font(AppFonts.title2)
+                    .foregroundColor(AppColors.textWhite)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.vertical, AppSpacing.md)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: "#BD851F"))
+                            .fill(AppColors.errorBrown)
                     )
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, AppSpacing.contentBottomPadding)
             }
             .transition(.asymmetric(
                 insertion: .scale(scale: 0.8).combined(with: .opacity),
                 removal: .scale(scale: 0.8).combined(with: .opacity)
             ))
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isVisible)
+            .animation(AppAnimations.spring, value: isVisible)
             .onAppear {
-                // 2秒后自动隐藏
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                // 配置的时长后自动隐藏
+                DispatchQueue.main.asyncAfter(deadline: .now() + GameConfig.dailyLimitToastDuration) {
+                    withAnimation(AppAnimations.spring) {
                         isVisible = false
                     }
                 }

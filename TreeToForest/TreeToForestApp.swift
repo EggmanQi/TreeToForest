@@ -9,6 +9,11 @@ import SwiftUI
 
 @main
 struct TreeToForestApp: App {
+    init() {
+        // 预加载动画帧以提升性能
+        WaterAnimationConfig.preloadAnimationFrames()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

@@ -12,7 +12,7 @@ struct WaterAnimationView: View {
     let onAnimationComplete: () -> Void
     
     @State private var currentFrameIndex = 0
-    @State private var timer: Timer?
+    @State private var animationTask: Task<Void, Never>?
     
     private let totalFrames = WaterAnimationConfig.totalFrames
     private let frameRate = WaterAnimationConfig.frameRate
@@ -20,7 +20,7 @@ struct WaterAnimationView: View {
     var body: some View {
         Group {
             if isPlaying {
-                Image("\(String(format: "%03d", currentFrameIndex))")
+                WaterAnimationConfig.getCachedImage(for: currentFrameIndex)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: WaterAnimationConfig.animationSize.width, height: WaterAnimationConfig.animationSize.height)
@@ -38,22 +38,32 @@ struct WaterAnimationView: View {
     
     private func startAnimation() {
         currentFrameIndex = 0
-        timer = Timer.scheduledTimer(withTimeInterval: frameRate, repeats: true) { _ in
-            withAnimation {
-                if currentFrameIndex < totalFrames - 1 {
-                    currentFrameIndex += 1
-                } else {
-                    stopAnimation()
-                    isPlaying = false
-                    onAnimationComplete()
+        animationTask = Task {
+            for frame in 0..<totalFrames {
+                // 检查任务是否被取消
+                if Task.isCancelled {
+                    return
                 }
+                
+                await MainActor.run {
+                    currentFrameIndex = frame
+                }
+                
+                // 等待下一帧
+                try? await Task.sleep(nanoseconds: UInt64(frameRate * 1_000_000_000))
+            }
+            
+            // 动画完成
+            await MainActor.run {
+                isPlaying = false
+                onAnimationComplete()
             }
         }
     }
     
     private func stopAnimation() {
-        timer?.invalidate()
-        timer = nil
+        animationTask?.cancel()
+        animationTask = nil
     }
 }
 

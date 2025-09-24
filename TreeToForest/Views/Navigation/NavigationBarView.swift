@@ -9,12 +9,18 @@ import SwiftUI
 
 struct NavigationBarView: View {
     let onQuestionTap: () -> Void
+    let onPrivationTap: () -> Void
     
     var body: some View {
         HStack {
             Spacer()
             Button(action: onQuestionTap) {
-                Image("icon_question")
+                Image("返回 1")
+                    .resizable()
+                    .frame(width: 24, height: 24)
+            }
+            Button(action: onPrivationTap) {
+                Image("返回 2")
                     .resizable()
                     .frame(width: 24, height: 24)
             }
@@ -24,5 +30,6 @@ struct NavigationBarView: View {
 }
 
 #Preview {
-    NavigationBarView(onQuestionTap: {})
+    NavigationBarView(onQuestionTap: {}, onPrivationTap: {}).background(.red)
 }
+

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.openURL) private var openURL
     @StateObject private var dataManager = DataManager.shared
     @State private var isWaterAnimationPlaying = false
     @State private var showEnvironmentalMessage = false
@@ -26,34 +27,45 @@ struct ContentView: View {
                 BackgroundGradientView()
             
                 // 图片背景层 (z=1)
-                BackgroundImageView(waterTimes: dataManager.waterTimes, completeTrees: dataManager.completeTrees)
+                BackgroundImageView(
+                    waterTimes: dataManager.waterTimes, 
+                    completeTrees: dataManager.completeTrees,
+                    isTreeBlinking: dataManager.isTreeBlinking
+                )
             
-                VStack(spacing: 0) {
+                VStack(spacing: 20) {
                     // 自定义导航栏
-                    CustomNavigationBarView(onQuestionTap: {
-                        // 显示环境保护信息弹出视图
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showEnvironmentalMessage = true
+                    CustomNavigationBarView(
+                        onQuestionTap: {
+                            // 显示环境保护信息弹出视图
+                            withAnimation(AppAnimations.easeInOut) {
+                                showEnvironmentalMessage = true
+                            }
+                        },
+                        onPrivacyTap: {
+                            if let url = URL(string: AppConfig.privacyPolicyURL) {
+                                openURL(url)
+                            }
                         }
-                    })
-                    DescriptionView(waterTimes: dataManager.waterTimes, remainingWaterTimes: dataManager.remainingWaterTimes)
+                    )
+                    DescriptionView(waterTimes: dataManager.waterTimes)
                     Spacer()
                 }
-                .padding(.top, 40)
+                .padding(.top, AppSpacing.contentTopPadding)
                 
                 VStack {
                     Spacer()
                     WaterButtonView(
                         onWater: {
                             // 隐藏按钮并触发浇水动画
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(AppAnimations.easeInOut) {
                                 isButtonVisible = false
                             }
                             isWaterAnimationPlaying = true
                         },
                         onDailyLimitTap: {
                             // 显示每日限制提示
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(AppAnimations.easeInOut) {
                                 showDailyLimitToast = true
                             }
                         },
@@ -71,8 +83,10 @@ struct ContentView: View {
                             print("Water animation completed")
                             // 执行浇水逻辑
                             dataManager.incrementWaterTimes()
+                            // 触发树闪烁动画
+                            dataManager.triggerTreeBlinking()
                             // 重新显示按钮
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(AppAnimations.easeInOut) {
                                 isButtonVisible = true
                             }
                         }
@@ -88,17 +102,17 @@ struct ContentView: View {
                 if showEnvironmentalMessage {
                     EnvironmentalMessageView(
                         onDismiss: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(AppAnimations.easeInOut) {
                                 showEnvironmentalMessage = false
                             }
                         },
                         onWater: {
                             // 关闭弹出视图
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(AppAnimations.easeInOut) {
                                 showEnvironmentalMessage = false
                             }
                             // 隐藏按钮并触发浇水动画
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(AppAnimations.easeInOut) {
                                 isButtonVisible = false
                             }
                             isWaterAnimationPlaying = true
@@ -106,7 +120,7 @@ struct ContentView: View {
                     )
                     .transition(.opacity.combined(with: .scale))
                 }
-                    
+                
                 DailyLimitToastView(isVisible: $showDailyLimitToast)
             }
             .ignoresSafeArea()

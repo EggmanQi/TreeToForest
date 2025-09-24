@@ -21,28 +21,28 @@ struct WaterButtonView: View {
             }
         }) {
             Text(canWater ? "Click to water" : "Daily limit reached")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
-                .frame(width: 212, height: 65)
+                .font(AppFonts.button)
+                .foregroundColor(AppColors.textWhite)
+                .frame(width: AppSpacing.buttonWidth, height: AppSpacing.buttonHeight)
                 .background(
-                    RoundedRectangle(cornerRadius: 25)
+                    RoundedRectangle(cornerRadius: AppSpacing.buttonCornerRadius)
                         .fill(
                             LinearGradient(
-                                colors: canWater ? [Color(hex: "#51B0FF"), Color(hex: "#51B0FF")] : [Color.gray, Color.gray.opacity(0.7)],
+                                colors: canWater ? [AppColors.primaryBlue, AppColors.primaryBlue] : [AppColors.disabledGray, AppColors.disabledGrayLight],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                         .shadow(
-                            color: canWater ? Color(hex: "#3E9BE7") : Color.clear,
+                            color: canWater ? AppColors.primaryBlueShadow : Color.clear,
                             radius: 0,
                             x: 0,
-                            y: 6
+                            y: AppSpacing.buttonShadowRadius
                         )
                 )
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 40)
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.bottom, AppSpacing.contentBottomPadding)
     }
 }
 

@@ -2,35 +2,46 @@ import SwiftUI
 
 struct CustomNavigationBarView: View {
     let onQuestionTap: () -> Void
+    let onPrivacyTap: () -> Void
     
     var body: some View {
         
         ZStack {
             HStack {
                 Spacer()
-                Text("TTF")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                Text("Hulm")
+                    .font(AppFonts.title2)
+                    .foregroundColor(AppColors.textWhite)
                 Spacer()
             }
             HStack {
                 Spacer()
-                Button(action: onQuestionTap) {
-                    Image("icon_question")
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(.white)
+                HStack(spacing: 6) {
+                    // 问号按钮
+                    Button(action: onQuestionTap) {
+                        Image("返回 1")
+                            .resizable()
+                            .frame(width: AppSizes.iconSmall, height: AppSizes.iconSmall)
+                            .foregroundColor(AppColors.textWhite)
+                    }
+                    Button(action: onPrivacyTap) {
+                        Image("返回 2")
+                            .resizable()
+                            .frame(width: AppSizes.iconSmall, height: AppSizes.iconSmall)
+                    }
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .frame(height: 44)
+        .padding(.horizontal, AppSpacing.navigationBarPadding)
+        .frame(height: AppSpacing.navigationBarHeight)
         .background(Color.clear)
     }
 }
 
 #Preview {
-    CustomNavigationBarView(onQuestionTap: {})
-        .background(Color.blue)
+    CustomNavigationBarView(
+        onQuestionTap: {},
+        onPrivacyTap: {}
+    )
+    .background(Color.blue)
 }

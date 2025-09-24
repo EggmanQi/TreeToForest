@@ -33,7 +33,7 @@ class DataManager: ObservableObject {
     
     @Published var waterTimes: Int = 0
     @Published var completeTrees: [CompleteTree] = []
-    private let maxWaterTimesPerDay = 5
+    @Published var isTreeBlinking: Bool = false
     
     private init() {
         loadWaterTimes()
@@ -46,9 +46,13 @@ class DataManager: ObservableObject {
         waterTimes = userDefaults.integer(forKey: waterTimesKey)
     }
     
-    // 保存浇水次数
+    // 保存浇水次数 - 异步保存以提升性能
     private func saveWaterTimes() {
-        userDefaults.set(waterTimes, forKey: waterTimesKey)
+        Task {
+            await MainActor.run {
+                userDefaults.set(waterTimes, forKey: waterTimesKey)
+            }
+        }
     }
     
     // 加载完成树数组
@@ -61,19 +65,27 @@ class DataManager: ObservableObject {
         }
     }
     
-    // 保存完成树数组
+    // 保存完成树数组 - 异步保存以提升性能
     private func saveCompleteTrees() {
-        if let data = try? JSONEncoder().encode(completeTrees) {
-            userDefaults.set(data, forKey: completeTreesKey)
+        Task {
+            do {
+                let data = try JSONEncoder().encode(completeTrees)
+                await MainActor.run {
+                    userDefaults.set(data, forKey: completeTreesKey)
+                }
+            } catch {
+                print("Failed to save complete trees: \(error)")
+            }
         }
     }
+    
     
     // 添加新的完成树
     private func addCompleteTree() {
         let newTree = CompleteTree(
-            relativeX: Double.random(in: 0.1...0.9),
-            relativeY: Double.random(in: 0.6...0.9), // 在屏幕下半部分
-            size: Double.random(in: 20...50)
+            relativeX: Double.random(in: AppPositions.treeXRange),
+            relativeY: Double.random(in: AppPositions.treeYRange),
+            size: Double.random(in: AppSizes.treeSizeMin...AppSizes.treeSizeMax)
         )
         completeTrees.append(newTree)
         saveCompleteTrees()
@@ -99,34 +111,33 @@ class DataManager: ObservableObject {
         }
     }
     
+    // 触发树闪烁动画
+    func triggerTreeBlinking() {
+        isTreeBlinking = true
+        
+        // 配置的时长后停止闪烁
+        DispatchQueue.main.asyncAfter(deadline: .now() + GameConfig.treeBlinkingDuration) {
+            self.isTreeBlinking = false
+        }
+    }
+    
     // 增加浇水次数并保存
     func incrementWaterTimes() {
         // 检查是否是新的一天
         checkAndResetDaily()
         
-        #if DEBUG
-        // 调试环境下忽略每日限制
-        waterTimes += 1
-        saveWaterTimes()
-        
-        // 调试环境下每5次浇水就增加completeTrees
-        if waterTimes % 5 == 0 {
-            addCompleteTree()
-        }
-        #else
-        // 生产环境下检查每日限制
-        if waterTimes >= maxWaterTimesPerDay {
+        // 检查每日限制
+        guard waterTimes < GameConfig.maxWaterTimesPerDay else {
             return // 已达到每日限制，不增加
         }
         
         waterTimes += 1
         saveWaterTimes()
         
-        // 检查是否达到50次，如果是则增加completeTrees
-        if waterTimes == 50 {
+        // 检查是否达到阈值，如果是则增加completeTrees
+        if waterTimes == GameConfig.treeGenerationThreshold {
             addCompleteTree()
         }
-        #endif
         
         // 更新最后浇水日期
         userDefaults.set(getCurrentDateString(), forKey: lastWaterDateKey)
@@ -146,17 +157,11 @@ class DataManager: ObservableObject {
     
     // 获取剩余浇水次数
     var remainingWaterTimes: Int {
-        return max(0, maxWaterTimesPerDay - waterTimes)
+        return max(0, GameConfig.maxWaterTimesPerDay - waterTimes)
     }
     
     // 检查是否还能浇水
     var canWater: Bool {
-        #if DEBUG
-        // 调试环境下始终允许浇水
-        return true
-        #else
-        // 生产环境下检查每日限制
-        return waterTimes < maxWaterTimesPerDay
-        #endif
+        return waterTimes < GameConfig.maxWaterTimesPerDay
     }
 }

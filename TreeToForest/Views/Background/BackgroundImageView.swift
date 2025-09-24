@@ -10,6 +10,7 @@ import SwiftUI
 struct BackgroundImageView: View {
     let waterTimes: Int
     let completeTrees: [CompleteTree]
+    let isTreeBlinking: Bool // 添加闪烁状态参数
     
     // 配置管理器
     @StateObject private var configManager = TreeConfigManager.shared
@@ -50,8 +51,15 @@ struct BackgroundImageView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity)
-                    .padding(.bottom, -100)
-
+                    .padding(.bottom, -80)
+                    // .scaleEffect(isTreeBlinking ? 1.2 : 1.0) // 闪烁时稍微放大
+                    .opacity(isTreeBlinking ? 0.3 : 1.0) // 闪烁时透明度变化
+                    .animation(
+                        isTreeBlinking ? 
+                        .easeInOut(duration: 0.25).repeatCount(3, autoreverses: true) : 
+                        .easeInOut(duration: 0.1),
+                        value: isTreeBlinking
+                    )
                     .onAppear {
                         // 重新加载配置
                         configManager.reloadConfig()
@@ -77,5 +85,5 @@ struct BackgroundImageView: View {
     BackgroundImageView(waterTimes: 3, completeTrees: [
         CompleteTree(relativeX: 0.3, relativeY: 0.7, size: 30),
         CompleteTree(relativeX: 0.7, relativeY: 0.8, size: 40)
-    ])
+    ], isTreeBlinking: false)
 }
