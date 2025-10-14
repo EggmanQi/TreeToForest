@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showEnvironmentalMessage = false
     @State private var isButtonVisible = true
     @State private var showDailyLimitToast = false
+    @State private var showAbout = false
     @State private var showWaterHistory = false
     private let firstLaunchMessageKey = "hasShownWelcomeMessage"
     
@@ -51,6 +52,9 @@ struct ContentView: View {
                         },
                         onHistoryTap: {
                             showWaterHistory = true
+                        },
+                        onAboutTap: {
+                            showAbout = true
                         }
                     )
                     DescriptionView(waterTimes: dataManager.waterTimes)
@@ -121,6 +125,20 @@ struct ContentView: View {
                                 isButtonVisible = false
                             }
                             isWaterAnimationPlaying = true
+                        }
+                    )
+                    .transition(.opacity.combined(with: .scale))
+                }
+                
+                // About 弹层：透明背景覆盖在首页之上
+                if showAbout {
+                    AboutView(
+                        appName: "TreeToForest",
+                        onPrivacyTap: {
+                            if let url = URL(string: AppConfig.privacyPolicyURL) { openURL(url) }
+                        },
+                        onClose: {
+                            withAnimation(AppAnimations.easeInOut) { showAbout = false }
                         }
                     )
                     .transition(.opacity.combined(with: .scale))

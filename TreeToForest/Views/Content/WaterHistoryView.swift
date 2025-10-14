@@ -42,7 +42,7 @@ struct WaterHistoryView: View {
                             Image(systemName: "calendar.badge.exclamationmark")
                                 .font(.system(size: 50))
                                 .foregroundColor(.gray)
-                            Text("还没有浇水记录")
+                            Text("No records")
                                 .font(.system(size: 16))
                                 .foregroundColor(.secondary)
                         }
@@ -52,11 +52,11 @@ struct WaterHistoryView: View {
                 }
                 .padding(.top, 20)
             }
-            .navigationTitle("浇水记录")
+            .navigationTitle("Records")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("关闭") {
+                    Button("Close") {
                         dismiss()
                     }
                 }

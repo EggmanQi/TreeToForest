@@ -15,10 +15,9 @@ struct BackgroundImageView: View {
     // 配置管理器
     @StateObject private var configManager = TreeConfigManager.shared
     
-    // 从配置文件获取树等级
-    private var treeLevel: Int {
-        return configManager.getTreeLevel(for: waterTimes)
-    }
+    // 等级动画状态
+    @State private var currentLevel: Int = 1
+    @State private var isLevelTransitioning: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -47,22 +46,49 @@ struct BackgroundImageView: View {
                         .position(getActualPosition(for: tree, in: geometry))
                 }
                 
-                Image("tree_lv_\(treeLevel)")
+                Image("tree_lv_\(currentLevel)")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, -80)
-                    // .scaleEffect(isTreeBlinking ? 1.2 : 1.0) // 闪烁时稍微放大
-                    .opacity(isTreeBlinking ? 0.3 : 1.0) // 闪烁时透明度变化
+                    // 等级切换与闪烁动画叠加
+                    .scaleEffect(isLevelTransitioning ? 1.08 : 1.0)
+                    .opacity(isTreeBlinking ? 0.3 : 1.0)
                     .animation(
-                        isTreeBlinking ? 
-                        .easeInOut(duration: 0.25).repeatCount(3, autoreverses: true) : 
-                        .easeInOut(duration: 0.1),
+                        isTreeBlinking ?
+                            .easeInOut(duration: 0.25).repeatCount(3, autoreverses: true) :
+                            .easeInOut(duration: 0.35),
                         value: isTreeBlinking
                     )
                     .onAppear {
                         // 重新加载配置
                         configManager.reloadConfig()
+                        // 初始化当前等级
+                        currentLevel = configManager.getTreeLevel(for: waterTimes)
+                    }
+                    .onChange(of: waterTimes) { newValue in
+                        let configLevel = configManager.getTreeLevel(for: newValue)
+                        // 规则：每逢5的倍数（含5）即触发“向下一个level”的转场动画
+                        let maxLevel = 10
+                        let targetLevel: Int = {
+                            if newValue > 0 && newValue % 5 == 0 {
+                                return min(configLevel + 1, maxLevel)
+                            } else {
+                                return configLevel
+                            }
+                        }()
+                        
+                        if targetLevel != currentLevel {
+                            withAnimation(AppAnimations.easeOut) {
+                                isLevelTransitioning = true
+                                currentLevel = targetLevel
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                withAnimation(AppAnimations.easeInOut) {
+                                    isLevelTransitioning = false
+                                }
+                            }
+                        }
                     }
             }
             .ignoresSafeArea()

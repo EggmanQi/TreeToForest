@@ -15,12 +15,12 @@ struct NavigationBarView: View {
         HStack {
             Spacer()
             Button(action: onQuestionTap) {
-                Image("返回 1")
+                Image(systemName: "questionmark.circle")
                     .resizable()
                     .frame(width: 24, height: 24)
             }
             Button(action: onPrivationTap) {
-                Image("返回 2")
+                Image("privacy")
                     .resizable()
                     .frame(width: 24, height: 24)
             }
