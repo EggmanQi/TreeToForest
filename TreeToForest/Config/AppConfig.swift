@@ -126,12 +126,92 @@ struct AppSizes {
 
 // MARK: - 位置配置
 struct AppPositions {
-    // 树生成位置范围
-    static let treeXRange = 0.1...0.9
-    static let treeYRange = 0.6...0.9
+    // 基础候选范围（先粗筛）
+    static let treeXRange = 0.12...0.88
+    static let treeYRange = 0.62...0.86
     
     // 动画位置偏移
     static let animationPositionOffset = CGPoint(x: 0, y: 0)
+    
+    // 生成一个避让"椭圆 + 按钮区"的安全位置（相对坐标 0~1）
+    static func randomSafeTreePosition() -> (x: Double, y: Double) {
+        // 椭圆（大坑）参数：可按视觉微调
+        let cx = 0.50, cy = 0.44
+        let rx = 0.30, ry = 0.10
+        
+        // 按钮禁区（底部中部）
+        func inButtonZone(_ x: Double, _ y: Double) -> Bool {
+            return y >= 0.84 && abs(x - 0.5) <= 0.22
+        }
+        
+        // 椭圆禁区
+        func inOval(_ x: Double, _ y: Double) -> Bool {
+            let nx = (x - cx) / rx
+            let ny = (y - cy) / ry
+            return (nx * nx + ny * ny) < 1.0
+        }
+        
+        // 简单拒绝采样
+        for _ in 0..<50 {
+            let x = Double.random(in: treeXRange)
+            let y = Double.random(in: treeYRange)
+            if !inButtonZone(x, y) && !inOval(x, y) {
+                return (x, y)
+            }
+        }
+        // 兜底：即便 50 次都撞禁区，也强行落点到范围中心附近
+        return (0.5, 0.78)
+    }
+
+    // MARK: - 位置检测与投射（用于迁移旧数据，尽量小位移）
+    private static func inButtonZone(_ x: Double, _ y: Double) -> Bool {
+        return y >= 0.84 && abs(x - 0.5) <= 0.22
+    }
+
+    private static func inOval(_ x: Double, _ y: Double) -> Bool {
+        let cx = 0.50, cy = 0.44
+        let rx = 0.30, ry = 0.10
+        let nx = (x - cx) / rx
+        let ny = (y - cy) / ry
+        return (nx * nx + ny * ny) < 1.0
+    }
+
+    // 将任意点投射到安全区域边界上，最小化位移
+    static func projectToSafePosition(x: Double, y: Double) -> (x: Double, y: Double) {
+        // 先裁剪到基础范围
+        var px = min(max(x, treeXRange.lowerBound), treeXRange.upperBound)
+        var py = min(max(y, treeYRange.lowerBound), treeYRange.upperBound)
+
+        // 矩形按钮区：优先沿垂直方向上移到边界
+        if inButtonZone(px, py) {
+            py = 0.839 // 刚好在禁区上方一条线
+        }
+
+        // 椭圆区：沿从椭圆中心指向点的方向投射到椭圆外边界
+        if inOval(px, py) {
+            let cx = 0.50, cy = 0.44
+            let rx = 0.30, ry = 0.10
+            var dx = px - cx
+            var dy = py - cy
+            // 避免零向量
+            if abs(dx) < 1e-6 && abs(dy) < 1e-6 {
+                dx = 1e-6
+            }
+            // 计算当前点的椭圆归一化半径 r^2 = (dx/rx)^2 + (dy/ry)^2
+            let r2 = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry)
+            if r2 < 1.0 {
+                // 需要把向量放大到边界上：scale = 1 / sqrt(r2)
+                let scale = 1.0 / sqrt(r2)
+                px = cx + dx * scale * 1.001 // 轻微超出，避免再次命中禁区
+                py = cy + dy * scale * 1.001
+            }
+        }
+
+        // 最终再次裁剪，确保在基础范围内
+        px = min(max(px, treeXRange.lowerBound), treeXRange.upperBound)
+        py = min(max(py, treeYRange.lowerBound), treeYRange.upperBound)
+        return (px, py)
+    }
     
     // 获取动画位置（屏幕宽度的2/3处，垂直居中）
     static func getAnimationPosition() -> CGPoint {

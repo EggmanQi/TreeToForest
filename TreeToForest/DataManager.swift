@@ -30,15 +30,19 @@ class DataManager: ObservableObject {
     private let waterTimesKey = "waterTimes"
     private let lastWaterDateKey = "lastWaterDate"
     private let completeTreesKey = "completeTrees"
+    private let waterHistoryKey = "waterHistory"
     
     @Published var waterTimes: Int = 0
     @Published var completeTrees: [CompleteTree] = []
     @Published var isTreeBlinking: Bool = false
+    @Published var waterHistory: [String: Int] = [:]
     
     private init() {
         loadWaterTimes()
         loadCompleteTrees()
+        loadWaterHistory()
         checkAndResetDaily()
+        migrateLegacyTreePositionsIfNeeded()
     }
     
     // 加载浇水次数
@@ -79,16 +83,69 @@ class DataManager: ObservableObject {
         }
     }
     
+    // 加载浇水历史记录
+    private func loadWaterHistory() {
+        if let data = userDefaults.data(forKey: waterHistoryKey),
+           let history = try? JSONDecoder().decode([String: Int].self, from: data) {
+            waterHistory = history
+        } else {
+            waterHistory = [:]
+        }
+    }
+    
+    // 保存浇水历史记录 - 异步保存以提升性能
+    private func saveWaterHistory() {
+        Task {
+            do {
+                let data = try JSONEncoder().encode(waterHistory)
+                await MainActor.run {
+                    userDefaults.set(data, forKey: waterHistoryKey)
+                }
+            } catch {
+                print("Failed to save water history: \(error)")
+            }
+        }
+    }
+    
     
     // 添加新的完成树
     private func addCompleteTree() {
+        let pos = AppPositions.randomSafeTreePosition()
         let newTree = CompleteTree(
-            relativeX: Double.random(in: AppPositions.treeXRange),
-            relativeY: Double.random(in: AppPositions.treeYRange),
+            relativeX: pos.x,
+            relativeY: pos.y,
             size: Double.random(in: AppSizes.treeSizeMin...AppSizes.treeSizeMax)
         )
         completeTrees.append(newTree)
         saveCompleteTrees()
+    }
+
+    // 一次性迁移：将历史树位置投射到新的安全区域（避免覆盖按钮/椭圆），仅运行一次
+    private func migrateLegacyTreePositionsIfNeeded() {
+        let migrationKey = "hasMigratedTreePositions_v1"
+        if userDefaults.bool(forKey: migrationKey) { return }
+        guard !completeTrees.isEmpty else {
+            userDefaults.set(true, forKey: migrationKey)
+            return
+        }
+        var changed = false
+        var updated: [CompleteTree] = []
+        updated.reserveCapacity(completeTrees.count)
+        for t in completeTrees {
+            let projected = AppPositions.projectToSafePosition(x: t.relativeX, y: t.relativeY)
+            // 若位置发生变化则替换
+            if abs(projected.x - t.relativeX) > 1e-6 || abs(projected.y - t.relativeY) > 1e-6 {
+                changed = true
+                updated.append(CompleteTree(relativeX: projected.x, relativeY: projected.y, size: t.size))
+            } else {
+                updated.append(t)
+            }
+        }
+        if changed {
+            completeTrees = updated
+            saveCompleteTrees()
+        }
+        userDefaults.set(true, forKey: migrationKey)
     }
     
     // 获取当前日期字符串
@@ -133,6 +190,11 @@ class DataManager: ObservableObject {
         
         waterTimes += 1
         saveWaterTimes()
+        
+        // 同步更新历史记录
+        let today = getCurrentDateString()
+        waterHistory[today] = waterTimes
+        saveWaterHistory()
         
         // 检查是否达到阈值，如果是则增加completeTrees
         if waterTimes == GameConfig.treeGenerationThreshold {

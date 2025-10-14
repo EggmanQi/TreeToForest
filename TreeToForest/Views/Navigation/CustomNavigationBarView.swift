@@ -3,6 +3,7 @@ import SwiftUI
 struct CustomNavigationBarView: View {
     let onQuestionTap: () -> Void
     let onPrivacyTap: () -> Void
+    let onHistoryTap: () -> Void
     
     var body: some View {
         
@@ -17,6 +18,13 @@ struct CustomNavigationBarView: View {
             HStack {
                 Spacer()
                 HStack(spacing: 6) {
+                    // 历史记录按钮
+                    Button(action: onHistoryTap) {
+                        Image(systemName: "calendar")
+                            .resizable()
+                            .frame(width: AppSizes.iconSmall, height: AppSizes.iconSmall)
+                            .foregroundColor(AppColors.textWhite)
+                    }
                     // 问号按钮
                     Button(action: onQuestionTap) {
                         Image("返回 1")
@@ -41,7 +49,8 @@ struct CustomNavigationBarView: View {
 #Preview {
     CustomNavigationBarView(
         onQuestionTap: {},
-        onPrivacyTap: {}
+        onPrivacyTap: {},
+        onHistoryTap: {}
     )
     .background(Color.blue)
 }

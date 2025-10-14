@@ -14,6 +14,8 @@ struct ContentView: View {
     @State private var showEnvironmentalMessage = false
     @State private var isButtonVisible = true
     @State private var showDailyLimitToast = false
+    @State private var showWaterHistory = false
+    private let firstLaunchMessageKey = "hasShownWelcomeMessage"
     
     var body: some View {
         NavigationView {
@@ -46,6 +48,9 @@ struct ContentView: View {
                             if let url = URL(string: AppConfig.privacyPolicyURL) {
                                 openURL(url)
                             }
+                        },
+                        onHistoryTap: {
+                            showWaterHistory = true
                         }
                     )
                     DescriptionView(waterTimes: dataManager.waterTimes)
@@ -125,6 +130,19 @@ struct ContentView: View {
             }
             .ignoresSafeArea()
             .navigationBarHidden(true)
+            .onAppear {
+                // 首次启动进入首页后，自动弹出" A message for you "
+                let hasShown = UserDefaults.standard.bool(forKey: firstLaunchMessageKey)
+                if !hasShown {
+                    withAnimation(AppAnimations.easeInOut) {
+                        showEnvironmentalMessage = true
+                    }
+                    UserDefaults.standard.set(true, forKey: firstLaunchMessageKey)
+                }
+            }
+            .sheet(isPresented: $showWaterHistory) {
+                WaterHistoryView()
+            }
         }
     }
 }
