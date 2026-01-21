@@ -10,6 +10,13 @@ import SwiftUI
 struct WaterHistoryCellView: View {
     let date: Date
     let count: Int
+    let hasJournal: Bool // 新增：当天是否有日记
+    
+    init(date: Date, count: Int, hasJournal: Bool = false) {
+        self.date = date
+        self.count = count
+        self.hasJournal = hasJournal
+    }
     
     var body: some View {
         VStack(spacing: 4) {
@@ -19,14 +26,21 @@ struct WaterHistoryCellView: View {
                 .foregroundColor(.secondary)
             
             // 浇水状态格子
-            RoundedRectangle(cornerRadius: 4)
-                .fill(backgroundColor)
-                .frame(width: 40, height: 40)
-                .overlay(
-                    Text(count > 0 ? "\(count)" : "")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                )
+            ZStack(alignment: .topTrailing) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(backgroundColor)
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Text(count > 0 ? "\(count)" : "")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                    )
+                    // 日记指示器（橙色边框）
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(AppColors.warningOrange, lineWidth: hasJournal ? 2 : 0)
+                    )
+            }
         }
     }
     
@@ -44,7 +58,7 @@ struct WaterHistoryCellView: View {
 #Preview {
     HStack(spacing: 10) {
         WaterHistoryCellView(date: Date(), count: 0)
-        WaterHistoryCellView(date: Date(), count: 3)
+        WaterHistoryCellView(date: Date(), count: 3, hasJournal: true)
         WaterHistoryCellView(date: Date(), count: 10)
     }
     .padding()

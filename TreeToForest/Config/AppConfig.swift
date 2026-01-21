@@ -121,6 +121,17 @@ struct AppStrings {
     
     // AboutView
     static let aboutPrivacyPolicy = "隐私政策"
+    
+    // Journal
+    static let journalButton = "日记"
+    static let writeJournal = "写日记"
+    static let journalPlaceholder = "请输入日记内容 (100字以内)"
+    static let save = "保存"
+    static let cancel = "取消"
+    static let journalSavedToday = "今日已记录"
+    static let viewJournal = "查看日记"
+    static let noJournal = "暂无日记"
+    static let journalContent = "日记内容"
 }
 
 // MARK: - 动画配置

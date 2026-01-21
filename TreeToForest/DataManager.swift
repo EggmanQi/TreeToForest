@@ -37,12 +37,16 @@ class DataManager: ObservableObject {
     @Published var totalWaterTimes: Int = 0
     @Published var completeTrees: [CompleteTree] = []
     @Published var waterHistory: [String: Int] = [:]
+    @Published var journalHistory: [String: String] = [:]
+    
+    private let journalHistoryKey = "journalHistory"
     
     private init() {
         loadWaterTimes()
         loadTotalWaterTimes()
         loadCompleteTrees()
         loadWaterHistory()
+        loadJournalHistory()
         checkAndResetDaily()
         migrateLegacyTreePositionsIfNeeded()
     }
@@ -129,6 +133,54 @@ class DataManager: ObservableObject {
         }
     }
     
+    // 加载日记历史记录
+    private func loadJournalHistory() {
+        if let data = userDefaults.data(forKey: journalHistoryKey),
+           let history = try? JSONDecoder().decode([String: String].self, from: data) {
+            journalHistory = history
+        } else {
+            journalHistory = [:]
+        }
+    }
+    
+    // 保存日记历史记录 - 异步保存以提升性能
+    private func saveJournalHistory() {
+        Task {
+            do {
+                let data = try JSONEncoder().encode(journalHistory)
+                await MainActor.run {
+                    userDefaults.set(data, forKey: journalHistoryKey)
+                }
+            } catch {
+                print("Failed to save journal history: \(error)")
+            }
+        }
+    }
+    
+    // 保存日记
+    func saveJournal(content: String, date: Date = Date()) {
+        let dateString = getCurrentDateString(from: date)
+        journalHistory[dateString] = content
+        saveJournalHistory()
+    }
+    
+    // 获取指定日期的日记
+    func getJournal(for date: Date) -> String? {
+        let dateString = getCurrentDateString(from: date)
+        return journalHistory[dateString]
+    }
+    
+    // 检查指定日期是否有日记
+    func hasJournal(for date: Date) -> Bool {
+        let dateString = getCurrentDateString(from: date)
+        return journalHistory[dateString] != nil
+    }
+    
+    // 检查今天是否已写日记
+    var hasWrittenJournalToday: Bool {
+        return hasJournal(for: Date())
+    }
+    
     
     // 添加新的完成树
     private func addCompleteTree() {
@@ -171,14 +223,14 @@ class DataManager: ObservableObject {
     }
     
     // 获取当前日期字符串
-    private func getCurrentDateString() -> String {
+    private func getCurrentDateString(from date: Date = Date()) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: Date())
+        return formatter.string(from: date)
     }
     
     // 检查并重置每日数据
-    private func checkAndResetDaily() {
+    func checkAndResetDaily() {
         let currentDate = getCurrentDateString()
         let lastWaterDate = userDefaults.string(forKey: lastWaterDateKey) ?? ""
         

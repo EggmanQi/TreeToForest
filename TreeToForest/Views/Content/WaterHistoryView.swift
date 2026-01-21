@@ -11,46 +11,71 @@ struct WaterHistoryView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var dataManager = DataManager.shared
     
+    // 选中的日记内容
+    @State private var selectedJournalContent: String?
+    @State private var showJournalDetail: Bool = false
+    
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // 热力图网格
-                    if !allDates.isEmpty {
-                        LazyVGrid(
-                            columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 7),
-                            spacing: 8
-                        ) {
-                            ForEach(allDates, id: \.self) { date in
-                                let dateString = dateFormatter.string(from: date)
-                                let count = dataManager.waterHistory[dateString] ?? 0
-                                WaterHistoryCellView(date: date, count: count)
+            ZStack {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // 热力图网格
+                        if !allDates.isEmpty {
+                            LazyVGrid(
+                                columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 7),
+                                spacing: 8
+                            ) {
+                                ForEach(allDates, id: \.self) { date in
+                                    let dateString = dateFormatter.string(from: date)
+                                    let count = dataManager.waterHistory[dateString] ?? 0
+                                    let hasJournal = dataManager.hasJournal(for: date)
+                                    
+                                    WaterHistoryCellView(date: date, count: count, hasJournal: hasJournal)
+                                        .onTapGesture {
+                                            if let content = dataManager.getJournal(for: date) {
+                                                selectedJournalContent = content
+                                                showJournalDetail = true
+                                            }
+                                        }
+                                }
                             }
+                            .padding(.horizontal, 16)
+                            
+                            // 底部起始日期
+                            if let firstDate = allDates.last {
+                                Text("Start date: \(displayDateFormatter.string(from: firstDate))")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
+                                    .padding(.top, 20)
+                                    .padding(.bottom, 30)
+                            }
+                        } else {
+                            VStack(spacing: 12) {
+                                Image(systemName: "calendar.badge.exclamationmark")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.gray)
+                                Text("No records")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.top, 100)
                         }
-                        .padding(.horizontal, 16)
-                        
-                        // 底部起始日期
-                        if let firstDate = allDates.last {
-                            Text("Start date: \(displayDateFormatter.string(from: firstDate))")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                                .padding(.top, 20)
-                                .padding(.bottom, 30)
-                        }
-                    } else {
-                        VStack(spacing: 12) {
-                            Image(systemName: "calendar.badge.exclamationmark")
-                                .font(.system(size: 50))
-                                .foregroundColor(.gray)
-                            Text("No records")
-                                .font(.system(size: 16))
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.top, 100)
                     }
+                    .padding(.top, 20)
                 }
-                .padding(.top, 20)
+                
+                // 日记详情弹窗
+                if showJournalDetail, let content = selectedJournalContent {
+                    JournalInputView(
+                        isPresented: $showJournalDetail,
+                        initialContent: content,
+                        isReadOnly: true
+                    )
+                    .transition(.opacity.combined(with: .scale))
+                    .zIndex(10)
+                }
             }
             .navigationTitle("Records")
             .navigationBarTitleDisplayMode(.inline)
@@ -78,41 +103,26 @@ struct WaterHistoryView: View {
         return formatter
     }
     
-    // 生成从第一条记录到今天的连续日期数组（降序，最新在前）
+    // 过滤后的有效日期数组（降序，最新在前，仅包含有浇水或有日记的日期）
     private var allDates: [Date] {
-        guard !dataManager.waterHistory.isEmpty else {
+        // 合并浇水记录和日记记录的日期
+        let waterDates = Set(dataManager.waterHistory.keys)
+        let journalDates = Set(dataManager.journalHistory.keys)
+        let allRecordDates = waterDates.union(journalDates)
+        
+        guard !allRecordDates.isEmpty else {
             return []
         }
         
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        // 找到最早的记录日期
-        let dateStrings = dataManager.waterHistory.keys
-        var earliestDate = today
-        
-        for dateString in dateStrings {
-            if let date = dateFormatter.date(from: dateString) {
-                if date < earliestDate {
-                    earliestDate = date
-                }
-            }
-        }
-        
-        // 生成从最早日期到今天的所有日期
         var dates: [Date] = []
-        var currentDate = today
-        
-        while currentDate >= earliestDate {
-            dates.append(currentDate)
-            if let previousDate = calendar.date(byAdding: .day, value: -1, to: currentDate) {
-                currentDate = previousDate
-            } else {
-                break
+        for dateString in allRecordDates {
+            if let date = dateFormatter.date(from: dateString) {
+                dates.append(date)
             }
         }
         
-        return dates
+        // 按日期降序排序
+        return dates.sorted(by: >)
     }
 }
 
