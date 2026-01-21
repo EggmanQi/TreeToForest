@@ -95,6 +95,34 @@ struct AppFonts {
     static let button = Font.system(size: 18, weight: .semibold)
 }
 
+// MARK: - 文案系统
+struct AppStrings {
+    static let appName = "TreeToForest"
+    
+    // DescriptionView
+    static let descriptionText = "当您种下一棵树，我们将为您在沙漠中种下一棵树，并以您的名字命名！"
+    static func dailyWateringTimes(current: Int, max: Int) -> String {
+        return "今日浇水次数: \(current)/\(max)"
+    }
+    
+    // WaterButtonView
+    static let clickToWater = "点击浇水"
+    static let dailyLimitReached = "今日次数已达上限"
+    
+    // DailyLimitToastView
+    static let dailyLimitToast = "浇水次数已用完，明天再来吧！"
+    
+    // EnvironmentalMessageView
+    static let messageTitle = "致您的一封信"
+    static let messageContent1 = "荒漠化是一个严重的环境问题，影响着我们星球的生态平衡。我们需要采取行动来解决这个问题。"
+    static let messageContent2 = "加入我们的APP并为树木浇水。您的参与将为这片土地带来绿色和生机，为全球环境保护做出贡献。"
+    static let messageContent3 = "我们将把您的树种在相应的沙漠地区，并以您的名字命名。通过这个小小的行动，您为我们的地球家园贡献了自己的力量。"
+    static let iKnowIt = "我知道了"
+    
+    // AboutView
+    static let aboutPrivacyPolicy = "隐私政策"
+}
+
 // MARK: - 动画配置
 struct AppAnimations {
     // 基础动画时长

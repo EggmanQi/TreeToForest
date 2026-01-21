@@ -41,7 +41,7 @@ class TreeConfigManager: ObservableObject {
             }.sorted { $0.waterTimes < $1.waterTimes }
         }
         
-        print("✅ TreeConfig loaded: \(treeLevels.count) levels")
+        // print("✅ TreeConfig loaded: \(treeLevels.count) levels")
     }
     
     // 根据浇水次数获取树等级

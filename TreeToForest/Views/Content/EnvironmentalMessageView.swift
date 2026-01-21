@@ -27,7 +27,7 @@ struct EnvironmentalMessageView: View {
                 // 背景A：标题和正文内容区域
                 VStack(spacing: 0) {
                     // 标题
-                    Text("A message for you")
+                    Text(AppStrings.messageTitle)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.top, 32)
@@ -35,17 +35,17 @@ struct EnvironmentalMessageView: View {
                     
                     // 正文内容
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Desertification is a serious environmental problem that affects the ecological balance of our planet. We need to take action to address this issue.")
+                        Text(AppStrings.messageContent1)
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.leading)
                         
-                        Text("Join our APP and water the trees. Your participation will bring green and vitality to this land, contributing to global environmental protection.")
+                        Text(AppStrings.messageContent2)
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.leading)
                         
-                        Text("We will plant your trees in the corresponding desert areas and name them after you. Through this small action, you have contributed your own strength to our home planet.")
+                        Text(AppStrings.messageContent3)
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.leading)
@@ -73,7 +73,7 @@ struct EnvironmentalMessageView: View {
                         onDismiss()
                     }
                 }) {
-                    Text("I know it")
+                    Text(AppStrings.iKnowIt)
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)

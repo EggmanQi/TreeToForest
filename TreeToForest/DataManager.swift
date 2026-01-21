@@ -28,17 +28,19 @@ class DataManager: ObservableObject {
     
     private let userDefaults = UserDefaults.standard
     private let waterTimesKey = "waterTimes"
+    private let totalWaterTimesKey = "totalWaterTimes"
     private let lastWaterDateKey = "lastWaterDate"
     private let completeTreesKey = "completeTrees"
     private let waterHistoryKey = "waterHistory"
     
     @Published var waterTimes: Int = 0
+    @Published var totalWaterTimes: Int = 0
     @Published var completeTrees: [CompleteTree] = []
-    @Published var isTreeBlinking: Bool = false
     @Published var waterHistory: [String: Int] = [:]
     
     private init() {
         loadWaterTimes()
+        loadTotalWaterTimes()
         loadCompleteTrees()
         loadWaterHistory()
         checkAndResetDaily()
@@ -50,11 +52,31 @@ class DataManager: ObservableObject {
         waterTimes = userDefaults.integer(forKey: waterTimesKey)
     }
     
+    // 加载累计浇水次数
+    private func loadTotalWaterTimes() {
+        totalWaterTimes = userDefaults.integer(forKey: totalWaterTimesKey)
+        // 数据迁移：如果 total 为 0 但 waterTimes > 0，且没有历史 total 记录，初始化它
+        // 注意：由于 waterTimes 每日重置，这个迁移只能找回“当天”的数据，但总比没有好
+        if totalWaterTimes == 0 && waterTimes > 0 {
+            totalWaterTimes = waterTimes
+            saveTotalWaterTimes()
+        }
+    }
+    
     // 保存浇水次数 - 异步保存以提升性能
     private func saveWaterTimes() {
         Task {
             await MainActor.run {
                 userDefaults.set(waterTimes, forKey: waterTimesKey)
+            }
+        }
+    }
+    
+    // 保存累计浇水次数
+    private func saveTotalWaterTimes() {
+        Task {
+            await MainActor.run {
+                userDefaults.set(totalWaterTimes, forKey: totalWaterTimesKey)
             }
         }
     }
@@ -160,21 +182,11 @@ class DataManager: ObservableObject {
         let currentDate = getCurrentDateString()
         let lastWaterDate = userDefaults.string(forKey: lastWaterDateKey) ?? ""
         
-        // 如果是新的一天，重置浇水次数
+        // 如果是新的一天，重置每日浇水次数 (但不重置 totalWaterTimes)
         if currentDate != lastWaterDate {
             waterTimes = 0
             saveWaterTimes()
             userDefaults.set(currentDate, forKey: lastWaterDateKey)
-        }
-    }
-    
-    // 触发树闪烁动画
-    func triggerTreeBlinking() {
-        isTreeBlinking = true
-        
-        // 配置的时长后停止闪烁
-        DispatchQueue.main.asyncAfter(deadline: .now() + GameConfig.treeBlinkingDuration) {
-            self.isTreeBlinking = false
         }
     }
     
@@ -188,8 +200,13 @@ class DataManager: ObservableObject {
             return // 已达到每日限制，不增加
         }
         
+        // 增加每日次数
         waterTimes += 1
         saveWaterTimes()
+        
+        // 增加累计次数
+        totalWaterTimes += 1
+        saveTotalWaterTimes()
         
         // 同步更新历史记录
         let today = getCurrentDateString()
@@ -197,7 +214,8 @@ class DataManager: ObservableObject {
         saveWaterHistory()
         
         // 检查是否达到阈值，如果是则增加completeTrees
-        if waterTimes == GameConfig.treeGenerationThreshold {
+        // 使用累计次数判断，每满 treeGenerationThreshold 次生成一棵树
+        if totalWaterTimes > 0 && totalWaterTimes % GameConfig.treeGenerationThreshold == 0 {
             addCompleteTree()
         }
         

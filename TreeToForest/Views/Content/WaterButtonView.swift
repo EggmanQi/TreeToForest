@@ -20,7 +20,7 @@ struct WaterButtonView: View {
                 onDailyLimitTap()
             }
         }) {
-            Text(canWater ? "Click to water" : "Daily limit reached")
+            Text(canWater ? AppStrings.clickToWater : AppStrings.dailyLimitReached)
                 .font(AppFonts.button)
                 .foregroundColor(AppColors.textWhite)
                 .frame(width: AppSpacing.buttonWidth, height: AppSpacing.buttonHeight)

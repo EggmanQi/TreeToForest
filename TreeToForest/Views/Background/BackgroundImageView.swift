@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BackgroundImageView: View {
-    let waterTimes: Int
+    let totalWaterTimes: Int
     let completeTrees: [CompleteTree]
     let isTreeBlinking: Bool // 添加闪烁状态参数
     
@@ -64,30 +64,25 @@ struct BackgroundImageView: View {
                         // 重新加载配置
                         configManager.reloadConfig()
                         // 初始化当前等级
-                        currentLevel = configManager.getTreeLevel(for: waterTimes)
+                        currentLevel = configManager.getTreeLevel(for: totalWaterTimes)
                     }
-                    .onChange(of: waterTimes) { newValue in
-                        let configLevel = configManager.getTreeLevel(for: newValue)
-                        // 规则：每逢5的倍数（含5）即触发“向下一个level”的转场动画
-                        let maxLevel = 10
-                        let targetLevel: Int = {
-                            if newValue > 0 && newValue % 5 == 0 {
-                                return min(configLevel + 1, maxLevel)
-                            } else {
-                                return configLevel
-                            }
-                        }()
+                    .onChange(of: totalWaterTimes) { newValue in
+                        let newLevel = configManager.getTreeLevel(for: newValue)
                         
-                        if targetLevel != currentLevel {
+                        // 当等级提升时触发动画
+                        if newLevel > currentLevel {
                             withAnimation(AppAnimations.easeOut) {
                                 isLevelTransitioning = true
-                                currentLevel = targetLevel
+                                currentLevel = newLevel
                             }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                                 withAnimation(AppAnimations.easeInOut) {
                                     isLevelTransitioning = false
                                 }
                             }
+                        } else {
+                            // 等级不变或降低（如重置），直接更新
+                            currentLevel = newLevel
                         }
                     }
             }
@@ -108,7 +103,7 @@ struct BackgroundImageView: View {
 }
 
 #Preview {
-    BackgroundImageView(waterTimes: 3, completeTrees: [
+    BackgroundImageView(totalWaterTimes: 3, completeTrees: [
         CompleteTree(relativeX: 0.3, relativeY: 0.7, size: 30),
         CompleteTree(relativeX: 0.7, relativeY: 0.8, size: 40)
     ], isTreeBlinking: false)

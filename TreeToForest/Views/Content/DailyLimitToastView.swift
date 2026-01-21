@@ -14,7 +14,7 @@ struct DailyLimitToastView: View {
         if isVisible {
             // 提示框
             VStack(spacing: 0) {
-                Text("Watering times have been used up, come back tomorrow!")
+                Text(AppStrings.dailyLimitToast)
                     .font(AppFonts.title2)
                     .foregroundColor(AppColors.textWhite)
                     .multilineTextAlignment(.center)

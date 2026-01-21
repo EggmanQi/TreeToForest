@@ -16,7 +16,17 @@ struct ContentView: View {
     @State private var showDailyLimitToast = false
     @State private var showAbout = false
     @State private var showWaterHistory = false
+    @State private var isTreeBlinking = false // UI 状态：树闪烁
     private let firstLaunchMessageKey = "hasShownWelcomeMessage"
+    
+    // 触发树闪烁动画
+    private func triggerTreeBlinking() {
+        isTreeBlinking = true
+        // 配置的时长后停止闪烁
+        DispatchQueue.main.asyncAfter(deadline: .now() + GameConfig.treeBlinkingDuration) {
+            isTreeBlinking = false
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -31,9 +41,9 @@ struct ContentView: View {
             
                 // 图片背景层 (z=1)
                 BackgroundImageView(
-                    waterTimes: dataManager.waterTimes, 
+                    totalWaterTimes: dataManager.totalWaterTimes, 
                     completeTrees: dataManager.completeTrees,
-                    isTreeBlinking: dataManager.isTreeBlinking
+                    isTreeBlinking: isTreeBlinking
                 )
             
                 VStack(spacing: 20) {
@@ -89,11 +99,11 @@ struct ContentView: View {
                         isPlaying: $isWaterAnimationPlaying,
                         onAnimationComplete: {
                             // 动画完成后的回调
-                            print("Water animation completed")
+                            // print("Water animation completed")
                             // 执行浇水逻辑
                             dataManager.incrementWaterTimes()
                             // 触发树闪烁动画
-                            dataManager.triggerTreeBlinking()
+                            triggerTreeBlinking()
                             // 重新显示按钮
                             withAnimation(AppAnimations.easeInOut) {
                                 isButtonVisible = true
@@ -101,10 +111,6 @@ struct ContentView: View {
                         }
                     )
                     .position(WaterAnimationConfig.getAnimationPosition())
-                    .onAppear {
-                        let position = WaterAnimationConfig.getAnimationPosition()
-                        print("Animation positioned at: (\(position.x), \(position.y))")
-                    }
                 }
                 
                 // 环境保护信息弹出层 (z=4，最上层)
@@ -120,11 +126,20 @@ struct ContentView: View {
                             withAnimation(AppAnimations.easeInOut) {
                                 showEnvironmentalMessage = false
                             }
-                            // 隐藏按钮并触发浇水动画
-                            withAnimation(AppAnimations.easeInOut) {
-                                isButtonVisible = false
+                            
+                            // 检查是否可以浇水
+                            if dataManager.canWater {
+                                // 隐藏按钮并触发浇水动画
+                                withAnimation(AppAnimations.easeInOut) {
+                                    isButtonVisible = false
+                                }
+                                isWaterAnimationPlaying = true
+                            } else {
+                                // 显示每日限制提示
+                                withAnimation(AppAnimations.easeInOut) {
+                                    showDailyLimitToast = true
+                                }
                             }
-                            isWaterAnimationPlaying = true
                         }
                     )
                     .transition(.opacity.combined(with: .scale))

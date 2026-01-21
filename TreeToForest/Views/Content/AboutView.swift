@@ -36,7 +36,7 @@ struct AboutView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "lock.shield")
                             .font(.system(size: 16, weight: .medium))
-                        Text("Privacy Policy")
+                        Text(AppStrings.aboutPrivacyPolicy)
                             .font(AppFonts.button)
                     }
                     .foregroundColor(.white)

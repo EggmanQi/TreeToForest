@@ -13,7 +13,7 @@ struct DescriptionView: View {
     var body: some View {
         VStack {
             // 主要说明文本
-            Text("When you plant a tree, we will plant a tree for you in the desert and name it after you!")
+            Text(AppStrings.descriptionText)
                 .font(AppFonts.body)
                 .foregroundColor(AppColors.textWhite)
                 .multilineTextAlignment(.center)
@@ -27,7 +27,7 @@ struct DescriptionView: View {
             
             // 浇水次数文本
             HStack {
-                Text("Today's watering times: \(waterTimes)/\(GameConfig.maxWaterTimesPerDay)")
+                Text(AppStrings.dailyWateringTimes(current: waterTimes, max: GameConfig.maxWaterTimesPerDay))
                     .font(AppFonts.body)
                     .foregroundColor(AppColors.textBrown)
                 Spacer()
