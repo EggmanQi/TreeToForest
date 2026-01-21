@@ -77,7 +77,6 @@ struct AboutView: View {
 }
 
 #Preview {
-    AboutView(appName: "Hulm", onPrivacyTap: {}, onClose: {})
+    AboutView(appName: AppStrings.appName, onPrivacyTap: {}, onClose: {})
 }
-
 

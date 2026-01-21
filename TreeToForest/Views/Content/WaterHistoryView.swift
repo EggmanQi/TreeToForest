@@ -44,7 +44,7 @@ struct WaterHistoryView: View {
                             
                             // 底部起始日期
                             if let firstDate = allDates.last {
-                                Text("Start date: \(displayDateFormatter.string(from: firstDate))")
+                                Text(AppStrings.startDateText(displayDateFormatter.string(from: firstDate)))
                                     .font(.system(size: 14))
                                     .foregroundColor(.secondary)
                                     .padding(.top, 20)
@@ -55,7 +55,7 @@ struct WaterHistoryView: View {
                                 Image(systemName: "calendar.badge.exclamationmark")
                                     .font(.system(size: 50))
                                     .foregroundColor(.gray)
-                                Text("No records")
+                                Text(AppStrings.noRecords)
                                     .font(.system(size: 16))
                                     .foregroundColor(.secondary)
                             }
@@ -77,11 +77,11 @@ struct WaterHistoryView: View {
                     .zIndex(10)
                 }
             }
-            .navigationTitle("Records")
+            .navigationTitle(AppStrings.recordsTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Close") {
+                    Button(AppStrings.close) {
                         dismiss()
                     }
                 }
@@ -129,4 +129,3 @@ struct WaterHistoryView: View {
 #Preview {
     WaterHistoryView()
 }
-

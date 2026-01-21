@@ -97,41 +97,64 @@ struct AppFonts {
 
 // MARK: - 文案系统
 struct AppStrings {
-    static let appName = "TreeToForest"
+    private static var localizationBundle: Bundle {
+        let language = Locale.preferredLanguages.first ?? "en"
+        let isChinese = language.hasPrefix("zh")
+        let code = isChinese ? "zh-Hans" : "en"
+        if let path = Bundle.main.path(forResource: code, ofType: "lproj"),
+           let bundle = Bundle(path: path) {
+            return bundle
+        }
+        return .main
+    }
+    
+    private static func localized(_ key: String) -> String {
+        NSLocalizedString(key, tableName: nil, bundle: localizationBundle, value: "", comment: "")
+    }
+    
+    static var appName: String { localized("app_name") }
     
     // DescriptionView
-    static let descriptionText = "当您种下一棵树，我们将为您在沙漠中种下一棵树，并以您的名字命名！"
+    static var descriptionText: String { localized("description_text") }
     static func dailyWateringTimes(current: Int, max: Int) -> String {
-        return "今日浇水次数: \(current)/\(max)"
+        String(format: localized("daily_watering_times"), current, max)
     }
     
     // WaterButtonView
-    static let clickToWater = "点击浇水"
-    static let dailyLimitReached = "今日次数已达上限"
+    static var clickToWater: String { localized("click_to_water") }
+    static var dailyLimitReached: String { localized("daily_limit_reached") }
     
     // DailyLimitToastView
-    static let dailyLimitToast = "浇水次数已用完，明天再来吧！"
+    static var dailyLimitToast: String { localized("daily_limit_toast") }
     
     // EnvironmentalMessageView
-    static let messageTitle = "致您的一封信"
-    static let messageContent1 = "荒漠化是一个严重的环境问题，影响着我们星球的生态平衡。我们需要采取行动来解决这个问题。"
-    static let messageContent2 = "加入我们的APP并为树木浇水。您的参与将为这片土地带来绿色和生机，为全球环境保护做出贡献。"
-    static let messageContent3 = "我们将把您的树种在相应的沙漠地区，并以您的名字命名。通过这个小小的行动，您为我们的地球家园贡献了自己的力量。"
-    static let iKnowIt = "我知道了"
+    static var messageTitle: String { localized("message_title") }
+    static var messageContent1: String { localized("message_content_1") }
+    static var messageContent2: String { localized("message_content_2") }
+    static var messageContent3: String { localized("message_content_3") }
+    static var iKnowIt: String { localized("i_know_it") }
     
     // AboutView
-    static let aboutPrivacyPolicy = "隐私政策"
+    static var aboutPrivacyPolicy: String { localized("about_privacy_policy") }
     
     // Journal
-    static let journalButton = "日记"
-    static let writeJournal = "写日记"
-    static let journalPlaceholder = "请输入日记内容 (100字以内)"
-    static let save = "保存"
-    static let cancel = "取消"
-    static let journalSavedToday = "今日已记录"
-    static let viewJournal = "查看日记"
-    static let noJournal = "暂无日记"
-    static let journalContent = "日记内容"
+    static var journalButton: String { localized("journal_button") }
+    static var writeJournal: String { localized("write_journal") }
+    static var journalPlaceholder: String { localized("journal_placeholder") }
+    static var save: String { localized("save") }
+    static var cancel: String { localized("cancel") }
+    static var journalSavedToday: String { localized("journal_saved_today") }
+    static var viewJournal: String { localized("view_journal") }
+    static var noJournal: String { localized("no_journal") }
+    static var journalContent: String { localized("journal_content") }
+    
+    // WaterHistoryView
+    static var recordsTitle: String { localized("records_title") }
+    static var close: String { localized("close") }
+    static var noRecords: String { localized("no_records") }
+    static func startDateText(_ dateString: String) -> String {
+        String(format: localized("start_date"), dateString)
+    }
 }
 
 // MARK: - 动画配置

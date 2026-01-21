@@ -183,7 +183,7 @@ struct ContentView: View {
                 // About 弹层：透明背景覆盖在首页之上
                 if showAbout {
                     AboutView(
-                        appName: "TreeToForest",
+                        appName: AppStrings.appName,
                         onPrivacyTap: {
                             if let url = URL(string: AppConfig.privacyPolicyURL) { openURL(url) }
                         },

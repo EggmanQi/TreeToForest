@@ -11,7 +11,7 @@ struct CustomNavigationBarView: View {
         ZStack {
             HStack {
                 Spacer()
-                Text("Hulm")
+                Text(AppStrings.appName)
                     .font(AppFonts.title2)
                     .foregroundColor(AppColors.textWhite)
                 Spacer()
